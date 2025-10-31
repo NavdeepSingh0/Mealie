@@ -1,0 +1,4 @@
+project_id = "ltjagciiobttbmrqdaui"
+
+[functions.ai-nutrition-chat]
+verify_jwt = false
