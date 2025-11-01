@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import logo from "@/assets/mealie-logo.png";
 
 const Navigation = () => {
   const location = useLocation();
@@ -27,6 +28,10 @@ const Navigation = () => {
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t md:top-0 md:bottom-auto md:border-b md:border-t-0">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center">
+          <Link to="/" className="hidden md:flex items-center gap-2 py-3 mr-8">
+            <img src={logo} alt="Mealie" className="h-10 w-10" />
+            <span className="font-bold text-xl text-foreground">Mealie</span>
+          </Link>
           <div className="flex justify-around md:justify-start md:gap-8 py-3 flex-1">
             {links.map(({ to, label, icon: Icon }) => {
             const isActive = location.pathname === to || 

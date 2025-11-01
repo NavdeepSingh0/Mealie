@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Utensils } from "lucide-react";
+import logo from "@/assets/mealie-logo.png";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -95,9 +95,7 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Utensils className="h-8 w-8 text-primary" />
-            </div>
+            <img src={logo} alt="Mealie Logo" className="h-24 w-24" />
           </div>
           <div>
             <CardTitle className="text-3xl font-bold gradient-text">Welcome to Mealie</CardTitle>
