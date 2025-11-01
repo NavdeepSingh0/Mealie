@@ -16,7 +16,7 @@ const Navigation = () => {
   const { user, signOut } = useAuth(false);
 
   const links = [
-    { to: "/", label: "Dashboard", icon: Home },
+    { to: "/", label: "Mealie Dashboard", icon: Home },
     { to: "/discover", label: "Discover", icon: Search },
     { to: "/meal-plan", label: "Meal Plan", icon: Calendar },
     { to: "/analytics", label: "Analytics", icon: TrendingUp },
