@@ -122,14 +122,14 @@ const MealPlan = () => {
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-4xl font-bold gradient-text">Meal Plan</h1>
             <p className="text-muted-foreground mt-2">Plan your weekly meals</p>
           </div>
-          <Button onClick={() => navigate("/ai-chat?action=mealplan")}>
+          <Button onClick={() => navigate("/ai-chat?action=mealplan")} size="sm" className="w-full md:w-auto">
             <Sparkles className="mr-2 h-4 w-4" />
-            Generate Smart Meal Plan
+            <span className="md:inline">Generate Plan</span>
           </Button>
         </div>
 

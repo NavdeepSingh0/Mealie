@@ -186,16 +186,16 @@ const GroceryList = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-4xl font-bold gradient-text">Grocery List</h1>
             <p className="text-muted-foreground mt-2">
               Ingredients for today's meals and your weekly plan
             </p>
           </div>
-          <Button onClick={() => navigate("/ai-chat?action=groceries")}>
+          <Button onClick={() => navigate("/ai-chat?action=groceries")} size="sm" className="w-full md:w-auto">
             <Sparkles className="mr-2 h-4 w-4" />
-            Generate Today's List
+            <span className="md:inline">Generate List</span>
           </Button>
         </div>
 

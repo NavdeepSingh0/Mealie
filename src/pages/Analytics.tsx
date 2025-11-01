@@ -264,15 +264,15 @@ const Analytics = () => {
             <CardTitle>Weekly Nutrition Trend</CardTitle>
             <CardDescription>Your daily nutrition intake over the past 7 days</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-[400px]">
+          <CardContent className="p-2 md:p-6">
+            <div className="h-[300px] md:h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weeklyData}>
+                <LineChart data={weeklyData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
+                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip />
-                  <Legend />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
                   <Line 
                     type="monotone" 
                     dataKey="calories" 
