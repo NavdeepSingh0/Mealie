@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navigation from "./components/Navigation";
+import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
 import Discover from "./pages/Discover";
 import MealPlan from "./pages/MealPlan";
@@ -21,19 +22,24 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="pb-20 md:pb-0 md:pt-16">
-          <Navigation />
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/discover" element={<Discover />} />
-            <Route path="/meal-plan" element={<MealPlan />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/grocery-list" element={<GroceryList />} />
-            <Route path="/ai-chat" element={<AIChat />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="*" element={
+            <div className="pb-20 md:pb-0 md:pt-16">
+              <Navigation />
+              <Routes>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/discover" element={<Discover />} />
+                <Route path="/meal-plan" element={<MealPlan />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/grocery-list" element={<GroceryList />} />
+                <Route path="/ai-chat" element={<AIChat />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+          } />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

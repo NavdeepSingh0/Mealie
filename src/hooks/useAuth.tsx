@@ -33,7 +33,7 @@ export const useAuth = (redirectToAuth = true) => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    navigate("/auth");
+    navigate("/");
   };
 
   return { user, loading, signOut };

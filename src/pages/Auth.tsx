@@ -6,7 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
+import { z } from "zod";
 import logo from "@/assets/mealie-logo.png";
+
+const emailSchema = z.string().email("Invalid email address");
+const passwordSchema = z.string()
+  .min(6, "Password must be at least 6 characters")
+  .max(72, "Password must be less than 72 characters");
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -14,19 +21,22 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/");
+        navigate("/dashboard");
       }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/");
+        navigate("/dashboard");
       }
     });
 
@@ -39,7 +49,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}/dashboard`,
         }
       });
 
@@ -51,11 +61,51 @@ const Auth = () => {
     }
   };
 
+  const validateEmail = (value: string) => {
+    try {
+      emailSchema.parse(value);
+      setEmailError("");
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        setEmailError(error.errors[0].message);
+      }
+      return false;
+    }
+  };
+
+  const validatePassword = (value: string) => {
+    try {
+      passwordSchema.parse(value);
+      setPasswordError("");
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        setPasswordError(error.errors[0].message);
+      }
+      return false;
+    }
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    if (value) validateEmail(value);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPassword(value);
+    if (value) validatePassword(value);
+  };
+
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
-      toast.error("Please fill in all fields");
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+
+    if (!isEmailValid || !isPasswordValid) {
       return;
     }
 
@@ -67,7 +117,7 @@ const Auth = () => {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo: `${window.location.origin}/dashboard`,
           }
         });
 
@@ -81,7 +131,7 @@ const Auth = () => {
 
         if (error) throw error;
         toast.success("Welcome back!");
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
@@ -150,20 +200,38 @@ const Auth = () => {
                 type="email"
                 placeholder="you@example.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
                 disabled={loading}
+                className={emailError ? "border-destructive" : ""}
               />
+              {emailError && (
+                <p className="text-sm text-destructive">{emailError}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={handlePasswordChange}
+                  disabled={loading}
+                  className={passwordError ? "border-destructive pr-10" : "pr-10"}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  disabled={loading}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {passwordError && (
+                <p className="text-sm text-destructive">{passwordError}</p>
+              )}
             </div>
             <Button type="submit" className="w-full" disabled={loading} size="lg">
               {loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
