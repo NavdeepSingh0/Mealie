@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { UtensilsCrossed, Calendar, Bot, TrendingUp, ChefHat, Apple, Salad } from "lucide-react";
 import mealielogo from "@/assets/mealie-logo.png";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 
 const Landing = () => {
   const features = [
@@ -49,6 +51,19 @@ const Landing = () => {
   const scrollToFeatures = () => {
     document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  const { user, loading } = useAuth(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard");
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen">
@@ -169,18 +184,20 @@ const Landing = () => {
           <TrendingUp className="absolute top-1/3 right-24 w-14 h-14 text-white animate-float" style={{ animationDelay: '2.5s' }} />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-8">
-          <h2 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
+        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-10">
+          <h2 className="text-4xl md:text-6xl font-bold text-white drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
             Ready to Transform Your Nutrition?
           </h2>
-          <p className="text-xl md:text-2xl text-white/95 drop-shadow-md">
+          <p className="text-xl md:text-2xl text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] font-medium">
             Join thousands of users achieving their health goals with Mealie
           </p>
-          <Link to="/auth">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-6 shadow-xl hover:scale-105 transition-all">
-              Start Your Journey
-            </Button>
-          </Link>
+          <div className="pt-4">
+            <Link to="/auth">
+              <Button size="lg" variant="secondary" className="text-lg px-8 py-6 shadow-xl hover:scale-105 transition-all">
+                Start Your Journey
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -8,6 +8,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SetGoalsDialog } from "@/components/dashboard/SetGoalsDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useOnboarding } from "@/hooks/useOnboarding";
+import { OnboardingModal } from "@/components/onboarding/OnboardingModal";
+import { FeatureTour } from "@/components/onboarding/FeatureTour";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -22,6 +25,26 @@ const Dashboard = () => {
     fats: 0,
   });
   const [showGoalsDialog, setShowGoalsDialog] = useState(false);
+  const [showFeatureTour, setShowFeatureTour] = useState(false);
+  const { needsOnboarding, loading: onboardingLoading, completeOnboarding } = useOnboarding(user);
+
+  const handleOnboardingComplete = async (data: any) => {
+    const { error } = await completeOnboarding(data);
+    
+    if (error) {
+      toast.error("Failed to save your goals. Please try again.");
+      return;
+    }
+    
+    toast.success("Goals saved! Let's take a quick tour.");
+    setShowFeatureTour(true);
+  };
+
+  const handleTourComplete = () => {
+    setShowFeatureTour(false);
+    checkAndLoadGoals();
+    loadTodaysMeals();
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -118,8 +141,34 @@ const Dashboard = () => {
     checkAndLoadGoals();
   };
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (loading || onboardingLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (needsOnboarding) {
+    return (
+      <OnboardingModal 
+        open={needsOnboarding} 
+        onComplete={handleOnboardingComplete}
+      />
+    );
+  }
+
+  // Show feature tour after onboarding completes
+  if (showFeatureTour) {
+    return (
+      <FeatureTour 
+        open={showFeatureTour}
+        onComplete={handleTourComplete}
+      />
+    );
   }
 
   if (!hasGoals) {
@@ -127,7 +176,7 @@ const Dashboard = () => {
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle className="text-2xl">Welcome to Mealie!</CardTitle>
+            <CardTitle className="text-2xl">Welcome to Mealie! 🍽️</CardTitle>
             <CardDescription>Your smart nutrition companion - set your daily goals to get started</CardDescription>
           </CardHeader>
           <CardContent>
@@ -155,8 +204,8 @@ const Dashboard = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold gradient-text">Dashboard</h1>
-            <p className="text-muted-foreground mt-2">Track your nutrition journey</p>
+            <h1 className="text-4xl font-bold gradient-text">Mealie Dashboard</h1>
+            <p className="text-muted-foreground mt-2">Track your nutrition journey with your smart companion</p>
           </div>
           <Button variant="outline" onClick={() => setShowGoalsDialog(true)}>
             Edit Goals

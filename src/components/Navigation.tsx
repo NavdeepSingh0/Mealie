@@ -18,7 +18,7 @@ const Navigation = () => {
   const isMobile = useIsMobile();
 
   const links = [
-    { to: "/", label: "Dashboard", icon: Home },
+    { to: "/dashboard", label: "Dashboard", icon: Home },
     { to: "/discover", label: "Discover", icon: Search },
     { to: "/meal-plan", label: "Meal Plan", icon: Calendar },
     { to: "/analytics", label: "Analytics", icon: TrendingUp },
@@ -52,14 +52,14 @@ const Navigation = () => {
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t md:top-0 md:bottom-auto md:border-b md:border-t-0">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between items-center">
-            <Link to="/" className="hidden md:flex items-center gap-2 py-3 mr-8">
+            <Link to="/dashboard" className="hidden md:flex items-center gap-2 py-3 mr-8">
               <img src={logo} alt="Mealie" className="h-10 w-10" />
               <span className="font-bold text-xl text-foreground">Mealie</span>
             </Link>
             <div className="flex justify-around md:justify-start md:gap-8 py-3 flex-1">
               {displayLinks.map(({ to, label, icon: Icon }) => {
             const isActive = location.pathname === to || 
-              (to !== "/" && location.pathname.startsWith(to));
+              (to !== "/" && to !== "/dashboard" && location.pathname.startsWith(to));
             
             return (
               <Link

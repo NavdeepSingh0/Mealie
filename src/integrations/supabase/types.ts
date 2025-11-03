@@ -231,26 +231,44 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          current_weight: number | null
           email: string | null
           full_name: string | null
           id: string
+          onboarding_completed: boolean | null
+          primary_nutrition_goal: string | null
+          target_weight: number | null
           updated_at: string | null
+          weekly_goal: string | null
+          weight_goal: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
+          current_weight?: number | null
           email?: string | null
           full_name?: string | null
           id: string
+          onboarding_completed?: boolean | null
+          primary_nutrition_goal?: string | null
+          target_weight?: number | null
           updated_at?: string | null
+          weekly_goal?: string | null
+          weight_goal?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string | null
+          current_weight?: number | null
           email?: string | null
           full_name?: string | null
           id?: string
+          onboarding_completed?: boolean | null
+          primary_nutrition_goal?: string | null
+          target_weight?: number | null
           updated_at?: string | null
+          weekly_goal?: string | null
+          weight_goal?: string | null
         }
         Relationships: []
       }
