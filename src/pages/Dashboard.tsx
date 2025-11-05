@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Plus, Trophy, TrendingUp, X } from "lucide-react";
+import { CircularProgress } from "@/components/ui/circular-progress";
+import { Plus, Trophy, TrendingUp, X, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SetGoalsDialog } from "@/components/dashboard/SetGoalsDialog";
@@ -17,6 +17,7 @@ const Dashboard = () => {
   const { user, loading } = useAuth();
   const [hasGoals, setHasGoals] = useState(false);
   const [goals, setGoals] = useState<any>(null);
+  const [goalsLoading, setGoalsLoading] = useState(true);
   const [todaysMeals, setTodaysMeals] = useState<any[]>([]);
   const [nutritionTotals, setNutritionTotals] = useState({
     calories: 0,
@@ -55,19 +56,25 @@ const Dashboard = () => {
   const checkAndLoadGoals = async () => {
     if (!user) return;
     
-    const { data, error } = await supabase
-      .from("user_profiles")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    setGoalsLoading(true);
+    try {
+      const { data } = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    if (data) {
-      setHasGoals(true);
-      setGoals(data);
-    } else {
-      setHasGoals(false);
+      if (data) {
+        setHasGoals(true);
+        setGoals(data);
+      } else {
+        setHasGoals(false);
+        setGoals(null);
+      }
+    } finally {
+      setGoalsLoading(false);
     }
   };
 
@@ -171,13 +178,22 @@ const Dashboard = () => {
     );
   }
 
-  if (!hasGoals) {
+  if (!goalsLoading && !hasGoals) {
+    const isReturningUser = !needsOnboarding && !onboardingLoading;
+    
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle className="text-2xl">Welcome to Mealie! 🍽️</CardTitle>
-            <CardDescription>Your smart nutrition companion - set your daily goals to get started</CardDescription>
+            <CardTitle className="text-2xl">
+              {isReturningUser ? "Set Your Daily Nutrition Goals 🎯" : "Welcome to Mealie! 🍽️"}
+            </CardTitle>
+            <CardDescription>
+              {isReturningUser 
+                ? "Complete your profile by setting your daily nutrition targets" 
+                : "Your smart nutrition companion - set your daily goals to get started"
+              }
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Button 
@@ -185,7 +201,7 @@ const Dashboard = () => {
               size="lg"
               onClick={() => setShowGoalsDialog(true)}
             >
-              Set Today's Nutrition Goals
+              {isReturningUser ? "Set Daily Goals" : "Set Today's Nutrition Goals"}
             </Button>
           </CardContent>
         </Card>
@@ -214,51 +230,47 @@ const Dashboard = () => {
 
         {/* Today's Progress */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Calories</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{Math.round(nutritionTotals.calories)}</div>
-              <p className="text-xs text-muted-foreground">of {goals?.daily_calorie_goal || 2000} kcal</p>
-              <Progress 
-                value={(nutritionTotals.calories / (goals?.daily_calorie_goal || 2000)) * 100} 
-                className="mt-2"
+          <Card className="glass-card">
+            <CardContent className="pt-6 flex justify-center">
+              <CircularProgress 
+                value={Math.round(nutritionTotals.calories)}
+                max={goals?.daily_calorie_goal || 2000}
+                label="Calories"
+                size="md"
               />
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Protein</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{Math.round(nutritionTotals.protein)}g</div>
-              <p className="text-xs text-muted-foreground">of {goals?.daily_protein_goal || 50}g</p>
-              <Progress 
-                value={(nutritionTotals.protein / (goals?.daily_protein_goal || 50)) * 100} 
-                className="mt-2"
+          <Card className="glass-card">
+            <CardContent className="pt-6 flex justify-center">
+              <CircularProgress 
+                value={Math.round(nutritionTotals.protein)}
+                max={goals?.daily_protein_goal || 50}
+                label="Protein (g)"
+                size="md"
               />
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Carbohydrates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{Math.round(nutritionTotals.carbs)}g</div>
-              <p className="text-xs text-muted-foreground">Daily intake</p>
+          <Card className="glass-card">
+            <CardContent className="pt-6 flex justify-center">
+              <CircularProgress 
+                value={Math.round(nutritionTotals.carbs)}
+                max={300}
+                label="Carbs (g)"
+                size="md"
+              />
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Fats</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{Math.round(nutritionTotals.fats)}g</div>
-              <p className="text-xs text-muted-foreground">Daily intake</p>
+          <Card className="glass-card">
+            <CardContent className="pt-6 flex justify-center">
+              <CircularProgress 
+                value={Math.round(nutritionTotals.fats)}
+                max={70}
+                label="Fats (g)"
+                size="md"
+              />
             </CardContent>
           </Card>
         </div>
@@ -279,8 +291,14 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             {todaysMeals.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No meals logged yet. Start by adding your first meal!
+              <div className="text-center py-12">
+                <Target className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
+                <p className="text-muted-foreground font-medium mb-2">No meals logged yet</p>
+                <p className="text-sm text-muted-foreground/70 mb-4">Start tracking your nutrition by adding your first meal</p>
+                <Button onClick={() => navigate("/discover")} variant="outline">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Your First Meal
+                </Button>
               </div>
             ) : (
               <div className="space-y-3">

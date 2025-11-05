@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import Navigation from "./components/Navigation";
 import Landing from "./pages/Landing";
 import Dashboard from "./pages/Dashboard";
@@ -18,30 +19,32 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="*" element={
-            <div className="pb-20 md:pb-0 md:pt-16">
-              <Navigation />
-              <Routes>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/discover" element={<Discover />} />
-                <Route path="/meal-plan" element={<MealPlan />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/grocery-list" element={<GroceryList />} />
-                <Route path="/ai-chat" element={<AIChat />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </div>
-          } />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="*" element={
+              <div className="pb-20 md:pb-0 md:pt-16">
+                <Navigation />
+                <Routes>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/discover" element={<Discover />} />
+                  <Route path="/meal-plan" element={<MealPlan />} />
+                  <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/grocery-list" element={<GroceryList />} />
+                  <Route path="/ai-chat" element={<AIChat />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+            } />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

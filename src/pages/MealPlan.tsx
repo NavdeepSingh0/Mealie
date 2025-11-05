@@ -136,7 +136,7 @@ const MealPlan = () => {
         {/* Weekly Meal Plan Grid */}
         <div className="space-y-6">
           {DAYS.map((day) => (
-            <Card key={day}>
+            <Card key={day} className="glass-card border-border/50">
               <CardHeader>
                 <CardTitle>{day}</CardTitle>
               </CardHeader>
@@ -159,7 +159,7 @@ const MealPlan = () => {
                         {mealPlan[day]?.[mealType]?.map((meal: any, index: number) => (
                           <div 
                             key={index} 
-                            className="flex justify-between items-start p-2 rounded border bg-card text-sm group"
+                            className="flex justify-between items-start p-2 rounded border bg-card text-sm group hover:bg-accent/50 hover:scale-[1.02] transition-all duration-200"
                           >
                             <div className="flex-1">
                               <div className="font-medium">{meal.dishName}</div>

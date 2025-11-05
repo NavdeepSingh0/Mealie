@@ -152,7 +152,7 @@ const Discover = () => {
         {/* Dishes Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredDishes.map((dish) => (
-            <Card key={dish.id} className="hover:shadow-lg transition-all">
+            <Card key={dish.id} className="glass-card hover:shadow-lg hover:scale-[1.02] transition-all duration-300 border-border/50">
               <CardHeader>
                 <CardTitle className="text-lg">{dish["Dish Name"]}</CardTitle>
                 <CardDescription>

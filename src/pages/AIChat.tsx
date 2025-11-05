@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Bot, Send, User, Download } from "lucide-react";
+import { ArrowLeft, Bot, Send, User, Download, Sparkles, CalendarDays, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -507,6 +507,24 @@ const AIChat = () => {
     }
   };
 
+  const quickPrompts = [
+    {
+      icon: CalendarDays,
+      label: "Weekly Meal Plan",
+      prompt: "Please create a personalized weekly meal plan based on my nutrition goals.",
+    },
+    {
+      icon: ShoppingBag,
+      label: "Grocery List",
+      prompt: "Please generate a grocery list for today's meals based on my nutrition goals.",
+    },
+    {
+      icon: Sparkles,
+      label: "Healthy Recipes",
+      prompt: "Suggest some healthy Indian recipes that fit my nutrition goals.",
+    },
+  ];
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
@@ -607,6 +625,26 @@ const AIChat = () => {
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
+
+            {messages.length <= 1 && !isLoading && (
+              <div className="mb-4 flex-shrink-0">
+                <p className="text-sm text-muted-foreground mb-2">Quick prompts:</p>
+                <div className="flex flex-wrap gap-2">
+                  {quickPrompts.map((prompt, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSendMessage(prompt.prompt)}
+                      className="glass-card hover:bg-accent/50 transition-all"
+                    >
+                      <prompt.icon className="mr-2 h-4 w-4" />
+                      {prompt.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-2 mt-4 flex-shrink-0">
               <Input
