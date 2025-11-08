@@ -130,12 +130,10 @@ const Landing = () => {
 
           {/* App Preview */}
           <div className="mt-20 relative animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10 pointer-events-none h-32 bottom-0"></div>
-            <img 
-              src={dashboardPreview} 
-              alt="Mealie Dashboard Preview" 
-              className="rounded-2xl shadow-2xl border-2 border-border/50 w-full max-w-5xl mx-auto"
-            />
+            <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent z-10 pointer-events-none h-32 bottom-0"></div>
+            <div className="bg-white dark:bg-white rounded-2xl shadow-2xl border border-border/50 w-full max-w-5xl mx-auto">
+              <img src={dashboardPreview} alt="Mealie Dashboard Preview" className="rounded-2xl" />
+            </div>
           </div>
         </div>
       </section>
