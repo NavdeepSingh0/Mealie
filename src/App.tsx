@@ -14,12 +14,14 @@ import GroceryList from "./pages/GroceryList";
 import AIChat from "./pages/AIChat";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+document.documentElement.classList.remove("dark");
+
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
