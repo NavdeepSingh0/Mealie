@@ -239,7 +239,7 @@ const Landing = () => {
 
       {/* Footer */}
       <footer className="py-8 px-4 bg-muted/50 text-center text-muted-foreground">
-        <p>&copy; 2024 Mealie. All rights reserved.</p>
+        <p>&copy; 2025 Mealie. All rights reserved.</p>
       </footer>
     </div>
   );
