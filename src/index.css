@@ -24,6 +24,9 @@ All colors MUST be HSL.
     --secondary: 188 85% 48%;
     --secondary-foreground: 0 0% 100%;
 
+    --tertiary: 280 70% 55%;
+    --tertiary-foreground: 0 0% 100%;
+
     --muted: 220 15% 94%;
     --muted-foreground: 220 20% 45%;
 
@@ -64,31 +67,34 @@ All colors MUST be HSL.
 
   .dark {
     --background: 220 27% 9%;
-    --foreground: 220 10% 90%;
+    --foreground: 0 0% 95%;
 
-    --card: 217 19% 18%;
-    --card-foreground: 220 10% 90%;
+    --card: 220 20% 15%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 217 19% 18%;
-    --popover-foreground: 220 10% 90%;
+    --popover: 220 20% 15%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 84 81% 44%;
-    --primary-foreground: 220 27% 9%;
-    --primary-glow: 84 81% 54%;
+    --primary: 142 76% 50%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 142 76% 60%;
 
     --secondary: 188 85% 55%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 217 19% 18%;
-    --muted-foreground: 220 9% 64%;
+    --tertiary: 280 70% 65%;
+    --tertiary-foreground: 0 0% 100%;
+
+    --muted: 220 20% 20%;
+    --muted-foreground: 220 10% 70%;
 
     --accent: 188 85% 55%;
-    --accent-foreground: 220 30% 10%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 50.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 25%;
+    --border: 220 20% 30%;
     --input: 220 20% 20%;
     --ring: 142 76% 50%;
 

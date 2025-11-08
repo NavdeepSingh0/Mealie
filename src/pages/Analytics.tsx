@@ -126,47 +126,56 @@ const Analytics = () => {
           calories: acc.calories + ((dish?.["Calories (kcal)"] || 0) * servings),
           protein: acc.protein + ((dish?.["Protein (g)"] || 0) * servings),
           fiber: acc.fiber + ((dish?.["Fibre (g)"] || 0) * servings),
+          hasMeals: true,
         };
-      }, { calories: 0, protein: 0, fiber: 0 });
+      }, { calories: 0, protein: 0, fiber: 0, hasMeals: false });
 
-      dailyTotals.push(dayTotal);
+      if (dayTotal.hasMeals || viewMode === 'daily') {
+        dailyTotals.push(dayTotal);
+      }
     }
 
     // Calculate achievement percentages
     const achievementsList = [];
 
-    // Calorie Goal Achievement
-    const calorieGoalDays = dailyTotals.filter(day => {
-      const percentage = (day.calories / profile.daily_calorie_goal) * 100;
-      return percentage >= 90 && percentage <= 110;
-    }).length;
-    const caloriePercentage = (calorieGoalDays / daysCount) * 100;
+    // Calorie Goal Achievement - calculate progress toward goal
+    const totalCalories = dailyTotals.reduce((sum, day) => sum + day.calories, 0);
+    const avgCalories = dailyTotals.length > 0 ? totalCalories / dailyTotals.length : 0;
+    const caloriePercentage = profile.daily_calorie_goal > 0 
+      ? Math.min((avgCalories / profile.daily_calorie_goal) * 100, 100) 
+      : 0;
 
     achievementsList.push({
       name: "Calorie Goal",
-      description: "Met daily calorie goals",
+      description: `${Math.round(avgCalories)} / ${profile.daily_calorie_goal} kcal`,
       percentage: caloriePercentage,
       tier: getTier(caloriePercentage),
     });
 
-    // Protein Goal Achievement
-    const proteinGoalDays = dailyTotals.filter(day => day.protein >= profile.daily_protein_goal).length;
-    const proteinPercentage = (proteinGoalDays / daysCount) * 100;
+    // Protein Goal Achievement - calculate progress toward goal
+    const totalProtein = dailyTotals.reduce((sum, day) => sum + day.protein, 0);
+    const avgProtein = dailyTotals.length > 0 ? totalProtein / dailyTotals.length : 0;
+    const proteinPercentage = profile.daily_protein_goal > 0 
+      ? Math.min((avgProtein / profile.daily_protein_goal) * 100, 100) 
+      : 0;
 
     achievementsList.push({
       name: "Protein Goal",
-      description: "Met daily protein goals",
+      description: `${Math.round(avgProtein)}g / ${profile.daily_protein_goal}g`,
       percentage: proteinPercentage,
       tier: getTier(proteinPercentage),
     });
 
-    // Fiber Goal Achievement
-    const fiberGoalDays = dailyTotals.filter(day => day.fiber >= profile.daily_fiber_goal).length;
-    const fiberPercentage = (fiberGoalDays / daysCount) * 100;
+    // Fiber Goal Achievement - calculate progress toward goal
+    const totalFiber = dailyTotals.reduce((sum, day) => sum + day.fiber, 0);
+    const avgFiber = dailyTotals.length > 0 ? totalFiber / dailyTotals.length : 0;
+    const fiberPercentage = profile.daily_fiber_goal > 0 
+      ? Math.min((avgFiber / profile.daily_fiber_goal) * 100, 100) 
+      : 0;
 
     achievementsList.push({
       name: "Fiber Goal",
-      description: "Met daily fiber goals",
+      description: `${Math.round(avgFiber)}g / ${profile.daily_fiber_goal}g`,
       percentage: fiberPercentage,
       tier: getTier(fiberPercentage),
     });
@@ -268,11 +277,25 @@ const Analytics = () => {
             <div className="h-[300px] md:h-[400px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={weeklyData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} 
+                    stroke="hsl(var(--border))"
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} 
+                    stroke="hsl(var(--border))"
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: "hsl(var(--popover))", 
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "var(--radius)",
+                      color: "hsl(var(--popover-foreground))"
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '12px', color: "hsl(var(--foreground))" }} />
                   <Line 
                     type="monotone" 
                     dataKey="calories" 
@@ -290,7 +313,7 @@ const Analytics = () => {
                   <Line 
                     type="monotone" 
                     dataKey="carbs" 
-                    stroke="hsl(var(--accent))" 
+                    stroke="hsl(var(--tertiary))" 
                     strokeWidth={2}
                     name="Carbs (g)"
                   />
