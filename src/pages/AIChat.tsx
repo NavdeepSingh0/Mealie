@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Bot, Send, User, Download, Sparkles, CalendarDays, ShoppingBag } from "lucide-react";
+import { LogoMark } from "@/components/Logo";
+import { cn } from "@/lib/utils";
+import { ArrowLeft, Send, Download, Sparkles, CalendarDays, ShoppingBag } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,6 +16,38 @@ interface Message {
   mealPlanData?: any;
   groceryListData?: any;
 }
+
+/** Renders the assistant's **bold** and "- " bullet syntax instead of showing raw asterisks. */
+const RichText = ({ text }: { text: string }) => {
+  const inline = (line: string) =>
+    line.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+      part.startsWith("**") && part.endsWith("**") ? <strong key={i}>{part.slice(2, -2)}</strong> : <span key={i}>{part}</span>
+    );
+  const lines = text.split("\n");
+  const out: JSX.Element[] = [];
+  let bullets: string[] = [];
+  const flush = () => {
+    if (bullets.length) {
+      out.push(
+        <ul key={`ul-${out.length}`} className="my-1 list-disc space-y-1 pl-5">
+          {bullets.map((b, i) => <li key={i}>{inline(b)}</li>)}
+        </ul>
+      );
+      bullets = [];
+    }
+  };
+  lines.forEach((raw, idx) => {
+    const m = raw.match(/^\s*[-*]\s+(.*)$/);
+    if (m) {
+      bullets.push(m[1]);
+    } else {
+      flush();
+      if (raw.trim()) out.push(<p key={`p-${idx}`}>{inline(raw)}</p>);
+    }
+  });
+  flush();
+  return <div className="space-y-2">{out}</div>;
+};
 
 const AIChat = () => {
   const [searchParams] = useSearchParams();
@@ -526,141 +558,122 @@ const AIChat = () => {
   ];
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center" role="status">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-muted border-t-primary" />
+      </div>
+    );
   }
 
+  const strip = (content: string) =>
+    content
+      .replace(/---MEAL_PLAN_START---[\s\S]*?---MEAL_PLAN_END---/g, "")
+      .replace(/---GROCERY_LIST_START---[\s\S]*?---GROCERY_LIST_END---/g, "")
+      .trim();
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        <Button 
-          variant="ghost" 
-          className="mb-4"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
+    <div className="mx-auto flex h-[calc(100dvh-8.5rem)] w-full max-w-3xl flex-col px-4 md:h-[calc(100dvh-4rem)] md:px-6">
+      {/* Header */}
+      <div className="flex items-center gap-3 py-4 md:py-6">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Go back" className="-ml-2 h-9 w-9">
+          <ArrowLeft className="h-5 w-5" />
         </Button>
+        <div>
+          <h1 className="text-2xl md:text-3xl">Nutrition assistant</h1>
+          <p className="text-sm text-muted-foreground">Meal plans, swaps and groceries, based on your goals.</p>
+        </div>
+      </div>
 
-        <Card className="h-[calc(100vh-200px)] flex flex-col overflow-hidden">
-          <CardHeader className="flex-shrink-0">
-            <CardTitle className="flex items-center gap-2">
-              <Bot className="h-5 w-5 text-primary" />
-              AI Nutrition Assistant
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col min-h-0">
-            <ScrollArea className="flex-1 pr-4 min-h-0">
-              <div className="space-y-4">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    {message.role === 'assistant' && (
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          <Bot className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                    <div className="flex flex-col gap-2 max-w-[80%]">
-                      <div
-                        className={`rounded-lg px-4 py-2 break-words ${
-                          message.role === 'user'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
-                        }`}
-                      >
-                        <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere">
-                          {message.content.replace(/---MEAL_PLAN_START---[\s\S]*?---MEAL_PLAN_END---/g, '')
-                            .replace(/---GROCERY_LIST_START---[\s\S]*?---GROCERY_LIST_END---/g, '').trim()}
-                        </p>
-                      </div>
-                      {message.mealPlanData && (
-                        <Button
-                          size="sm"
-                          onClick={() => importMealPlan(message.mealPlanData)}
-                          className="w-fit"
-                        >
-                          <Download className="mr-2 h-4 w-4" />
-                          Import Meal Plan
-                        </Button>
-                      )}
-                      {message.groceryListData && (
-                        <Button
-                          size="sm"
-                          onClick={() => importGroceryList(message.groceryListData)}
-                          className="w-fit"
-                        >
-                          <Download className="mr-2 h-4 w-4" />
-                          Import Grocery List
-                        </Button>
-                      )}
-                    </div>
-                    {message.role === 'user' && (
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback>
-                          <User className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                    )}
-                  </div>
-                ))}
-                {isLoading && (
-                  <div className="flex gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-primary text-primary-foreground">
-                        <Bot className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="rounded-lg px-4 py-2 bg-muted">
-                      <div className="flex gap-1">
-                        <div className="w-2 h-2 rounded-full bg-primary animate-bounce" />
-                        <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.1s' }} />
-                        <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.2s' }} />
-                      </div>
-                    </div>
-                  </div>
+      {/* Messages */}
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="space-y-5 pb-4 pr-3" aria-live="polite">
+          {messages.map((message, index) => {
+            const isUser = message.role === "user";
+            return (
+              <div key={index} className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
+                {!isUser && (
+                  <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-card">
+                    <LogoMark className="h-5 w-5" />
+                  </span>
                 )}
-                <div ref={messagesEndRef} />
-              </div>
-            </ScrollArea>
-
-            {messages.length <= 1 && !isLoading && (
-              <div className="mb-4 flex-shrink-0">
-                <p className="text-sm text-muted-foreground mb-2">Quick prompts:</p>
-                <div className="flex flex-wrap gap-2">
-                  {quickPrompts.map((prompt, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSendMessage(prompt.prompt)}
-                      className="glass-card hover:bg-accent/50 transition-all"
-                    >
-                      <prompt.icon className="mr-2 h-4 w-4" />
-                      {prompt.label}
+                <div className={cn("flex max-w-[85%] flex-col gap-2", isUser && "items-end")}>
+                  <div
+                    className={cn(
+                      "break-words px-4 py-3 text-[15px] leading-relaxed",
+                      isUser
+                        ? "rounded-2xl rounded-br-md bg-primary text-primary-foreground"
+                        : "rounded-2xl rounded-bl-md border bg-card"
+                    )}
+                  >
+                    {isUser ? <p className="whitespace-pre-wrap">{strip(message.content)}</p> : <RichText text={strip(message.content)} />}
+                  </div>
+                  {message.mealPlanData && (
+                    <Button size="sm" variant="outline" onClick={() => importMealPlan(message.mealPlanData)} className="w-fit">
+                      <Download className="h-4 w-4" />
+                      Import meal plan
                     </Button>
-                  ))}
+                  )}
+                  {message.groceryListData && (
+                    <Button size="sm" variant="outline" onClick={() => importGroceryList(message.groceryListData)} className="w-fit">
+                      <Download className="h-4 w-4" />
+                      Import grocery list
+                    </Button>
+                  )}
                 </div>
               </div>
-            )}
+            );
+          })}
 
-            <div className="flex gap-2 mt-4 flex-shrink-0">
-              <Input
-                placeholder="Ask about nutrition, meal planning, or get recommendations..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={isLoading}
-                className="flex-1 min-w-0"
-              />
-              <Button onClick={handleSend} disabled={isLoading || !input.trim()} className="flex-shrink-0">
-                <Send className="h-4 w-4" />
-              </Button>
+          {isLoading && (
+            <div className="flex gap-3" role="status" aria-label="Assistant is typing">
+              <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-card">
+                <LogoMark className="h-5 w-5" />
+              </span>
+              <div className="rounded-2xl rounded-bl-md border bg-card px-4 py-4">
+                <div className="flex gap-1.5">
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-primary" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-secondary [animation-delay:120ms]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-tertiary [animation-delay:240ms]" />
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
+
+      {/* Suggestions, shown until the conversation starts */}
+      {messages.length <= 1 && !isLoading && (
+        <div className="grid gap-2 pb-3 sm:grid-cols-3">
+          {quickPrompts.map((prompt, index) => (
+            <button
+              key={index}
+              onClick={() => handleSendMessage(prompt.prompt)}
+              className="paper paper-hover flex items-center gap-3 p-3 text-left text-sm font-semibold"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-secondary/25 text-secondary-foreground">
+                <prompt.icon className="h-4 w-4" />
+              </span>
+              {prompt.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Composer */}
+      <div className="flex gap-2 pb-4 md:pb-6">
+        <Input
+          placeholder="Ask about a dish, a swap or your week"
+          aria-label="Message the assistant"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={handleKeyPress}
+          disabled={isLoading}
+          className="h-12 min-w-0 flex-1 rounded-full px-5"
+        />
+        <Button onClick={handleSend} disabled={isLoading || !input.trim()} className="h-12 w-12 shrink-0 rounded-full p-0" aria-label="Send message">
+          <Send className="h-5 w-5" />
+        </Button>
       </div>
     </div>
   );

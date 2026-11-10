@@ -1,182 +1,243 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/fraunces";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
+/*
+  Mealie design system: "spice market".
+  Warm cream paper, deep-brown ink, chilli red as the action colour,
+  saffron and herb green for nutrition data. All colours are HSL triples.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 220 60% 20%;
+    --background: 42 38% 95%;
+    --foreground: 24 30% 13%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 60% 20%;
+    --card: 42 45% 98.5%;
+    --card-foreground: 24 30% 13%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 60% 20%;
+    --popover: 42 45% 98.5%;
+    --popover-foreground: 24 30% 13%;
 
-    --primary: 142 76% 45%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 142 76% 55%;
+    /* chilli */
+    --primary: 12 68% 44%;
+    --primary-foreground: 42 60% 97%;
+    --primary-glow: 12 72% 54%;
 
-    --secondary: 188 85% 48%;
-    --secondary-foreground: 0 0% 100%;
+    /* saffron */
+    --secondary: 38 92% 52%;
+    --secondary-foreground: 24 40% 12%;
 
-    --tertiary: 280 70% 55%;
-    --tertiary-foreground: 0 0% 100%;
+    /* herb */
+    --tertiary: 98 28% 34%;
+    --tertiary-foreground: 42 60% 97%;
 
-    --muted: 220 15% 94%;
-    --muted-foreground: 220 20% 45%;
+    --muted: 40 28% 90%;
+    --muted-foreground: 25 14% 36%;
 
-    --accent: 188 85% 48%;
-    --accent-foreground: 220 60% 20%;
+    --accent: 40 45% 90%;
+    --accent-foreground: 24 30% 13%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 70% 46%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 92%;
-    --ring: 142 76% 45%;
+    --border: 38 24% 82%;
+    --input: 38 24% 80%;
+    --ring: 12 68% 44%;
 
-    --success: 142 76% 45%;
-    --warning: 38 92% 50%;
-    --info: 188 85% 48%;
-    
-    --gradient-primary: linear-gradient(135deg, hsl(142 76% 45%), hsl(142 76% 55%));
-    --gradient-hero: linear-gradient(135deg, hsl(142 76% 45%) 0%, hsl(188 85% 48%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
-    
-    --shadow-sm: 0 1px 2px 0 hsl(142 76% 45% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(142 76% 45% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(142 76% 45% / 0.15);
-    --shadow-glow: 0 0 20px hsl(142 76% 55% / 0.3);
+    --success: 98 28% 34%;
+    --warning: 38 92% 46%;
+    --info: 200 40% 38%;
 
-    --radius: 0.75rem;
+    /* nutrition data colours (used by rings and charts) */
+    --macro-calories: 24 30% 16%;
+    --macro-protein: 98 30% 36%;
+    --macro-carbs: 36 88% 46%;
+    --macro-fats: 340 42% 42%;
+    --macro-fibre: 170 30% 34%;
 
-    --sidebar-background: 220 15% 96%;
-    --sidebar-foreground: 220 60% 20%;
-    --sidebar-primary: 142 76% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 94%;
-    --sidebar-accent-foreground: 188 85% 48%;
-    --sidebar-border: 220 15% 88%;
-    --sidebar-ring: 142 76% 45%;
+    --gradient-primary: linear-gradient(135deg, hsl(12 68% 44%), hsl(12 72% 54%));
+    --shadow-sm: 0 1px 2px 0 hsl(24 30% 13% / 0.06);
+    --shadow-md: 0 6px 16px -4px hsl(24 30% 13% / 0.10);
+    --shadow-lg: 0 18px 40px -12px hsl(24 30% 13% / 0.18);
+
+    --radius: 1rem;
+
+    --sidebar-background: 42 38% 95%;
+    --sidebar-foreground: 24 30% 13%;
+    --sidebar-primary: 12 68% 44%;
+    --sidebar-primary-foreground: 42 60% 97%;
+    --sidebar-accent: 40 45% 90%;
+    --sidebar-accent-foreground: 24 30% 13%;
+    --sidebar-border: 38 24% 82%;
+    --sidebar-ring: 12 68% 44%;
   }
 
   .dark {
-    --background: 220 27% 9%;
-    --foreground: 0 0% 95%;
+    --background: 24 22% 8%;
+    --foreground: 40 32% 92%;
 
-    --card: 220 20% 15%;
-    --card-foreground: 0 0% 95%;
+    --card: 24 18% 12%;
+    --card-foreground: 40 32% 92%;
 
-    --popover: 220 20% 15%;
-    --popover-foreground: 0 0% 95%;
+    --popover: 24 18% 12%;
+    --popover-foreground: 40 32% 92%;
 
-    --primary: 142 76% 50%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 142 76% 60%;
+    --primary: 12 72% 58%;
+    --primary-foreground: 24 30% 8%;
+    --primary-glow: 12 76% 64%;
 
-    --secondary: 188 85% 55%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 38 90% 56%;
+    --secondary-foreground: 24 40% 10%;
 
-    --tertiary: 280 70% 65%;
-    --tertiary-foreground: 0 0% 100%;
+    --tertiary: 98 30% 56%;
+    --tertiary-foreground: 24 40% 10%;
 
-    --muted: 220 20% 20%;
-    --muted-foreground: 220 10% 70%;
+    --muted: 24 14% 18%;
+    --muted-foreground: 35 14% 66%;
 
-    --accent: 188 85% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 24 14% 20%;
+    --accent-foreground: 40 32% 92%;
 
-    --destructive: 0 62.8% 50.6%;
+    --destructive: 0 66% 54%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 30%;
-    --input: 220 20% 20%;
-    --ring: 142 76% 50%;
+    --border: 24 12% 24%;
+    --input: 24 12% 26%;
+    --ring: 12 72% 58%;
 
-    --success: 142 76% 50%;
-    --warning: 38 92% 60%;
-    --info: 188 85% 55%;
-    
-    --gradient-primary: linear-gradient(135deg, hsl(142 76% 50%), hsl(142 76% 60%));
-    --gradient-hero: linear-gradient(135deg, hsl(142 76% 50%) 0%, hsl(188 85% 55%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(220 25% 14%) 0%, hsl(220 25% 16%) 100%);
-    
-    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.5);
-    --shadow-glow: 0 0 20px hsl(142 76% 60% / 0.4);
+    --success: 98 30% 56%;
+    --warning: 38 90% 58%;
+    --info: 200 45% 62%;
 
-    --sidebar-background: 220 25% 12%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 142 76% 50%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 220 20% 20%;
-    --sidebar-accent-foreground: 188 85% 55%;
-    --sidebar-border: 220 20% 25%;
-    --sidebar-ring: 142 76% 50%;
+    --macro-calories: 40 32% 90%;
+    --macro-protein: 98 32% 56%;
+    --macro-carbs: 38 90% 58%;
+    --macro-fats: 340 52% 66%;
+    --macro-fibre: 170 36% 56%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(12 72% 58%), hsl(12 76% 64%));
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.4);
+    --shadow-md: 0 6px 16px -4px hsl(0 0% 0% / 0.5);
+    --shadow-lg: 0 18px 40px -12px hsl(0 0% 0% / 0.6);
+
+    --sidebar-background: 24 22% 8%;
+    --sidebar-foreground: 40 32% 92%;
+    --sidebar-primary: 12 72% 58%;
+    --sidebar-primary-foreground: 24 30% 8%;
+    --sidebar-accent: 24 14% 20%;
+    --sidebar-accent-foreground: 40 32% 92%;
+    --sidebar-border: 24 12% 24%;
+    --sidebar-ring: 12 72% 58%;
   }
 }
 
 @layer base {
   * {
     @apply border-border;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: "cv11" 1, "ss01" 1;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold tracking-tight;
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Fraunces Variable', 'Fraunces', Georgia, 'Times New Roman', serif;
+    font-variation-settings: "SOFT" 60, "WONK" 0;
+    font-feature-settings: "lnum" 1;
+    @apply font-semibold tracking-tight;
   }
 
+  .font-display {
+    font-feature-settings: "lnum" 1;
+  }
+
+  ::selection {
+    background: hsl(var(--secondary) / 0.35);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Small uppercase label used above headings and on data labels */
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground;
+  }
+
+  /* Page container shared by every app page */
+  .page {
+    @apply mx-auto w-full max-w-6xl px-4 py-8 md:px-8 md:py-12;
+  }
+
+  .page-title {
+    @apply text-4xl md:text-5xl leading-[1.05];
+  }
+
+  /* Paper card: a quiet surface with a hairline border */
+  .paper {
+    @apply rounded-2xl border bg-card text-card-foreground;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .paper-hover {
+    @apply transition-[transform,box-shadow] duration-200 ease-out;
+  }
+  .paper-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Subtle grain so large cream areas do not feel flat */
+  .grain {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.25  0 0 0 0 0.15  0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* Legacy helpers kept so any remaining reference still renders in the new palette */
   .gradient-text {
-    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+    @apply text-primary;
   }
-
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
   .glass-card {
-    @apply backdrop-blur-md bg-card/80 border border-border/50;
+    @apply bg-card border;
   }
-
   .hero-gradient {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+    background: hsl(var(--primary));
   }
+}
 
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+@layer utilities {
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
-
+  .animate-rise {
+    animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
   .animate-fade-in {
-    animation: fade-in 0.6s ease-out forwards;
-    opacity: 0;
+    animation: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .animate-float {
+    animation: float 7s ease-in-out infinite;
   }
 }

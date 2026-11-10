@@ -1,111 +1,132 @@
 import { useLocation, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, Search, Calendar, TrendingUp, ShoppingCart, MessageSquare, LogOut, User, Moon, Sun } from "lucide-react";
+import { Home, Search, Calendar, TrendingUp, ShoppingCart, MessageSquare, LogOut, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import logo from "@/assets/mealie-logo.png";
+import { Logo } from "@/components/Logo";
+
+const links = [
+  { to: "/dashboard", label: "Today", icon: Home },
+  { to: "/discover", label: "Discover", icon: Search },
+  { to: "/meal-plan", label: "Plan", icon: Calendar },
+  { to: "/grocery-list", label: "Grocery", icon: ShoppingCart },
+  { to: "/analytics", label: "Trends", icon: TrendingUp },
+];
+
+const AccountMenu = () => {
+  const { user, signOut } = useAuth(false);
+  const { theme, setTheme } = useTheme();
+  if (!user) return null;
+  const email = user.email ?? "";
+  const initial = (email[0] ?? "?").toUpperCase();
+
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        className="h-9 w-9"
+        aria-label="Toggle dark mode"
+      >
+        <Sun className="h-4 w-4 dark:hidden" />
+        <Moon className="hidden h-4 w-4 dark:block" />
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary font-display text-base font-semibold text-secondary-foreground outline-none ring-offset-background transition-shadow focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            aria-label="Account menu"
+          >
+            {initial}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel className="truncate font-normal text-muted-foreground">{email}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive focus:text-destructive">
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
 
 const Navigation = () => {
   const location = useLocation();
-  const { user, signOut } = useAuth(false);
-  const isMobile = useIsMobile();
-  const { theme, setTheme } = useTheme();
-
-  const links = [
-    { to: "/dashboard", label: "Dashboard", icon: Home },
-    { to: "/discover", label: "Discover", icon: Search },
-    { to: "/meal-plan", label: "Meal Plan", icon: Calendar },
-    { to: "/analytics", label: "Analytics", icon: TrendingUp },
-    { to: "/grocery-list", label: "Grocery", icon: ShoppingCart },
-  ];
-
+  const isActive = (to: string) => location.pathname === to || location.pathname.startsWith(to + "/");
   const isAIChatActive = location.pathname === "/ai-chat";
 
   return (
     <>
-      {/* Floating AI Chat Button - All devices */}
-      <Link
-        to="/ai-chat"
-        className={cn(
-          "fixed bottom-24 md:bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition-all hover:scale-110",
-          isAIChatActive
-            ? "bg-primary text-primary-foreground"
-            : "bg-gradient-to-br from-primary to-secondary text-white hover:shadow-xl"
-        )}
-      >
-        <MessageSquare className="h-6 w-6" />
-      </Link>
+      {/* Assistant shortcut, reachable from every page */}
+      {!isAIChatActive && (
+        <Link
+          to="/ai-chat"
+          aria-label="Open nutrition assistant"
+          className="fixed bottom-24 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-foreground text-background shadow-[var(--shadow-lg)] transition-transform hover:scale-105 md:bottom-6 md:right-6"
+        >
+          <MessageSquare className="h-6 w-6" />
+        </Link>
+      )}
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t md:top-0 md:bottom-auto md:border-b md:border-t-0">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center">
-            <Link to="/dashboard" className="hidden md:flex items-center gap-2 py-3 mr-8">
-              <img src={logo} alt="Mealie" className="h-10 w-10" />
-              <span className="font-bold text-xl text-foreground">Mealie</span>
-            </Link>
-            <div className="flex justify-around md:justify-start md:gap-8 py-3 flex-1">
-              {links.map(({ to, label, icon: Icon }) => {
-            const isActive = location.pathname === to || 
-              (to !== "/" && to !== "/dashboard" && location.pathname.startsWith(to));
-            
-            return (
-              <Link
-                key={to}
-                to={to}
-                className={cn(
-                  "flex flex-col md:flex-row items-center gap-1 md:gap-2 px-3 py-2 rounded-lg transition-all",
-                  isActive
-                    ? "text-primary font-medium bg-primary/10"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs md:text-sm">{label}</span>
-              </Link>
+      {/* Mobile top bar */}
+      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center justify-between border-b bg-background/90 px-4 backdrop-blur md:hidden">
+        <Link to="/dashboard" aria-label="Mealie home">
+          <Logo markClassName="h-7 w-7" className="[&>span:last-child]:text-xl" />
+        </Link>
+        <AccountMenu />
+      </header>
+
+      {/* Desktop top bar and mobile bottom tabs share one element */}
+      <nav
+        aria-label="Main"
+        className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:bottom-auto md:top-0 md:border-b md:border-t-0 md:bg-background/90 md:pb-0"
+      >
+        <div className="mx-auto flex max-w-6xl items-center px-2 md:h-16 md:px-8">
+          <Link to="/dashboard" className="mr-10 hidden md:block" aria-label="Mealie home">
+            <Logo />
+          </Link>
+
+          <ul className="flex flex-1 justify-around md:justify-start md:gap-1">
+            {links.map(({ to, label, icon: Icon }) => {
+              const active = isActive(to);
+              return (
+                <li key={to}>
+                  <Link
+                    to={to}
+                    aria-current={active ? "page" : undefined}
+                    className={cn(
+                      "relative flex flex-col items-center gap-1 px-3 py-2.5 text-[11px] font-medium transition-colors md:flex-row md:gap-2 md:rounded-full md:px-4 md:py-2 md:text-sm",
+                      active
+                        ? "text-primary md:bg-primary/10"
+                        : "text-muted-foreground hover:text-foreground md:hover:bg-accent"
+                    )}
+                  >
+                    <Icon className="h-5 w-5 md:h-4 md:w-4" strokeWidth={active ? 2.4 : 2} />
+                    <span>{label}</span>
+                  </Link>
+                </li>
               );
             })}
-          </div>
-          
-          <div className="hidden md:flex items-center gap-2 py-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="h-9 w-9"
-            >
-              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-              <span className="sr-only">Toggle theme</span>
-            </Button>
-            
-            {user && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <User className="h-4 w-4" />
-                    <span className="text-sm">{user.email?.split('@')[0]}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={signOut} className="text-destructive cursor-pointer">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+          </ul>
+
+          <div className="hidden md:block">
+            <AccountMenu />
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
     </>
   );
 };

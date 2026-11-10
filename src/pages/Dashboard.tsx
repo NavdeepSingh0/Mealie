@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { MealThumb } from "@/components/MealThumb";
 import { CircularProgress } from "@/components/ui/circular-progress";
-import { Plus, Trophy, TrendingUp, X, Target } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ArrowRight, Plus, Target, TrendingUp, X, UtensilsCrossed } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SetGoalsDialog } from "@/components/dashboard/SetGoalsDialog";
@@ -150,10 +152,10 @@ const Dashboard = () => {
 
   if (loading || onboardingLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-muted-foreground">Loading your dashboard...</p>
+      <div className="flex min-h-[70vh] items-center justify-center">
+        <div className="space-y-4 text-center" role="status">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-2 border-muted border-t-primary" />
+          <p className="text-sm text-muted-foreground">Loading your day...</p>
         </div>
       </div>
     );
@@ -180,28 +182,26 @@ const Dashboard = () => {
 
   if (!goalsLoading && !hasGoals) {
     const isReturningUser = !needsOnboarding && !onboardingLoading;
-    
+
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardHeader>
-            <CardTitle className="text-2xl">
-              {isReturningUser ? "Set Your Daily Nutrition Goals 🎯" : "Welcome to Mealie! 🍽️"}
+      <div className="flex min-h-[80vh] items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader className="items-center">
+            <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/25 text-secondary-foreground">
+              <UtensilsCrossed className="h-7 w-7" />
+            </div>
+            <CardTitle className="text-3xl">
+              {isReturningUser ? "Set your daily targets" : "Welcome to Mealie"}
             </CardTitle>
-            <CardDescription>
-              {isReturningUser 
-                ? "Complete your profile by setting your daily nutrition targets" 
-                : "Your smart nutrition companion - set your daily goals to get started"
-              }
+            <CardDescription className="text-base">
+              {isReturningUser
+                ? "Choose the calorie and protein goals the rings will track."
+                : "Set your daily goals to get started."}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              className="w-full" 
-              size="lg"
-              onClick={() => setShowGoalsDialog(true)}
-            >
-              {isReturningUser ? "Set Daily Goals" : "Set Today's Nutrition Goals"}
+            <Button className="w-full" size="lg" variant="hero" onClick={() => setShowGoalsDialog(true)}>
+              {isReturningUser ? "Set daily goals" : "Set today's goals"}
             </Button>
           </CardContent>
         </Card>
@@ -214,145 +214,162 @@ const Dashboard = () => {
     );
   }
 
+  const calorieGoal = goals?.daily_calorie_goal || 2000;
+  const caloriesLeft = Math.round(calorieGoal - nutritionTotals.calories);
+  const macros = [
+    { label: "Protein", value: Math.round(nutritionTotals.protein), max: goals?.daily_protein_goal || 50, bar: "bg-macro-protein" },
+    { label: "Carbs", value: Math.round(nutritionTotals.carbs), max: 300, bar: "bg-macro-carbs" },
+    { label: "Fats", value: Math.round(nutritionTotals.fats), max: 70, bar: "bg-macro-fats" },
+  ];
+
+  const slotOrder = ["breakfast", "lunch", "dinner", "snack"];
+  const slots = [
+    ...slotOrder,
+    ...Array.from(new Set(todaysMeals.map((m) => m.meal_type).filter((t) => t && !slotOrder.includes(t)))),
+  ]
+    .map((slot) => ({ slot, meals: todaysMeals.filter((m) => m.meal_type === slot) }))
+    .filter((g) => g.meals.length > 0);
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const dateLabel = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" });
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-4xl font-bold gradient-text">Mealie Dashboard</h1>
-            <p className="text-muted-foreground mt-2">Track your nutrition journey with your smart companion</p>
-          </div>
+    <div className="page space-y-8">
+      {/* Header */}
+      <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="eyebrow">{dateLabel}</p>
+          <h1 className="page-title mt-3">{greeting}.</h1>
+        </div>
+        <div className="flex gap-3">
           <Button variant="outline" onClick={() => setShowGoalsDialog(true)}>
-            Edit Goals
+            <Target className="h-4 w-4" />
+            Edit goals
+          </Button>
+          <Button variant="hero" onClick={() => navigate("/discover")}>
+            <Plus className="h-4 w-4" />
+            Add meal
           </Button>
         </div>
-
-        {/* Today's Progress */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="glass-card">
-            <CardContent className="pt-6 flex justify-center">
-              <CircularProgress 
-                value={Math.round(nutritionTotals.calories)}
-                max={goals?.daily_calorie_goal || 2000}
-                label="Calories"
-                size="md"
-              />
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardContent className="pt-6 flex justify-center">
-              <CircularProgress 
-                value={Math.round(nutritionTotals.protein)}
-                max={goals?.daily_protein_goal || 50}
-                label="Protein (g)"
-                size="md"
-              />
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardContent className="pt-6 flex justify-center">
-              <CircularProgress 
-                value={Math.round(nutritionTotals.carbs)}
-                max={300}
-                label="Carbs (g)"
-                size="md"
-              />
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card">
-            <CardContent className="pt-6 flex justify-center">
-              <CircularProgress 
-                value={Math.round(nutritionTotals.fats)}
-                max={70}
-                label="Fats (g)"
-                size="md"
-              />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Today's Meals */}
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>Today's Meals</CardTitle>
-                <CardDescription>Track what you've eaten today</CardDescription>
-              </div>
-              <Button onClick={() => navigate("/discover")}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Meal
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {todaysMeals.length === 0 ? (
-              <div className="text-center py-12">
-                <Target className="h-12 w-12 text-muted-foreground/40 mx-auto mb-4" />
-                <p className="text-muted-foreground font-medium mb-2">No meals logged yet</p>
-                <p className="text-sm text-muted-foreground/70 mb-4">Start tracking your nutrition by adding your first meal</p>
-                <Button onClick={() => navigate("/discover")} variant="outline">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Your First Meal
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {todaysMeals.map((meal) => (
-                  <div 
-                    key={meal.id} 
-                    className="flex justify-between items-center p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                  >
-                    <div className="flex-1">
-                      <div className="font-medium">{meal.nutrition_info?.["Dish Name"]}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {meal.meal_type} • {meal.serving_size}x serving
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {Math.round(meal.nutrition_info?.["Calories (kcal)"] * meal.serving_size)} kcal
-                      </div>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => handleDeleteMeal(meal.id)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/analytics")}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-accent" />
-                Achievements
-              </CardTitle>
-              <CardDescription>View your nutrition achievements</CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card className="cursor-pointer hover:shadow-lg transition-all" onClick={() => navigate("/analytics")}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                Weekly Trends
-              </CardTitle>
-              <CardDescription>Track your weekly progress</CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
       </div>
+
+      {/* Today's progress */}
+      <section aria-labelledby="progress-heading" className="paper grid gap-8 p-6 md:grid-cols-[auto_1fr] md:items-center md:gap-14 md:p-9">
+        <h2 id="progress-heading" className="sr-only">Today's progress</h2>
+        <div className="flex flex-col items-center gap-2">
+          <CircularProgress
+            value={Math.round(nutritionTotals.calories)}
+            max={calorieGoal}
+            label="Calories"
+            unit="kcal"
+            tone="calories"
+            size="lg"
+          />
+          <p className="text-sm text-muted-foreground tabular-nums">
+            {caloriesLeft >= 0 ? `${caloriesLeft} kcal left today` : `${Math.abs(caloriesLeft)} kcal over target`}
+          </p>
+        </div>
+
+        <ul className="space-y-6">
+          {macros.map((m) => {
+            const pct = Math.min((m.value / m.max) * 100, 100);
+            return (
+              <li key={m.label}>
+                <div className="mb-2 flex items-baseline justify-between">
+                  <span className="text-sm font-semibold">{m.label}</span>
+                  <span className="text-sm text-muted-foreground tabular-nums">
+                    <span className="font-display text-xl font-semibold text-foreground">{m.value}</span> / {m.max} g
+                  </span>
+                </div>
+                <div
+                  className="h-3 overflow-hidden rounded-full bg-muted"
+                  role="progressbar"
+                  aria-label={m.label}
+                  aria-valuenow={m.value}
+                  aria-valuemin={0}
+                  aria-valuemax={m.max}
+                >
+                  <div className={cn("h-full rounded-full transition-[width] duration-700 ease-out", m.bar)} style={{ width: `${pct}%` }} />
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      {/* Today's meals */}
+      <section aria-labelledby="meals-heading">
+        <h2 id="meals-heading" className="mb-4 text-2xl">Today&rsquo;s meals</h2>
+
+        {todaysMeals.length === 0 ? (
+          <div className="rounded-2xl border-2 border-dashed bg-card/60 px-6 py-14 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/25 text-secondary-foreground">
+              <UtensilsCrossed className="h-7 w-7" />
+            </div>
+            <p className="font-display text-2xl">Nothing logged yet</p>
+            <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+              Add what you had for breakfast and the rings above will start to fill.
+            </p>
+            <Button className="mt-6" variant="hero" onClick={() => navigate("/discover")}>
+              <Plus className="h-4 w-4" />
+              Add your first meal
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {slots.map(({ slot, meals }) => (
+              <div key={slot}>
+                <p className="eyebrow mb-2 capitalize">{slot}</p>
+                <ul className="paper divide-y divide-border/70 overflow-hidden">
+                  {meals.map((meal) => {
+                    const name = meal.nutrition_info?.["Dish Name"] ?? "Unknown dish";
+                    const kcal = Math.round((meal.nutrition_info?.["Calories (kcal)"] || 0) * (meal.serving_size || 1));
+                    return (
+                      <li key={meal.id} className="flex items-center gap-4 p-4">
+                        <MealThumb name={name} />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-semibold">{name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {meal.serving_size}&times; serving
+                          </p>
+                        </div>
+                        <p className="font-semibold tabular-nums">{kcal} kcal</p>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleDeleteMeal(meal.id)}
+                          aria-label={`Remove ${name}`}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Link on to trends */}
+      <button
+        onClick={() => navigate("/analytics")}
+        className="paper paper-hover group flex w-full items-center justify-between p-5 text-left md:p-6"
+      >
+        <span className="flex items-center gap-4">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-tertiary/15 text-tertiary">
+            <TrendingUp className="h-5 w-5" />
+          </span>
+          <span>
+            <span className="block font-display text-lg font-semibold">How is your week going?</span>
+            <span className="block text-sm text-muted-foreground">See your trends and streaks</span>
+          </span>
+        </span>
+        <ArrowRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
+      </button>
 
       <SetGoalsDialog 
         open={showGoalsDialog} 
