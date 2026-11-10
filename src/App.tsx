@@ -30,7 +30,7 @@ const App = () => (
             <Route path="/" element={<Landing />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="*" element={
-              <div className="pb-20 md:pb-0 md:pt-16">
+              <div className="pb-20 pt-14 md:pb-0 md:pt-16">
                 <Navigation />
                 <Routes>
                   <Route path="/dashboard" element={<Dashboard />} />

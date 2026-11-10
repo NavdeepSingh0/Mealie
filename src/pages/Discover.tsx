@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Search, Sparkles, TrendingDown } from "lucide-react";
+import { MealThumb } from "@/components/MealThumb";
+import { Plus, Search, Sparkles, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AddMealDialog } from "@/components/discover/AddMealDialog";
@@ -21,6 +20,8 @@ const Discover = () => {
   const [proteinFilter, setProteinFilter] = useState("all");
   const [selectedDish, setSelectedDish] = useState<any>(null);
   const [showAddMealDialog, setShowAddMealDialog] = useState(false);
+  const PAGE_SIZE = 24;
+  const [visible, setVisible] = useState(PAGE_SIZE);
 
   useEffect(() => {
     loadDishes();
@@ -28,6 +29,7 @@ const Discover = () => {
 
   useEffect(() => {
     filterDishes();
+    setVisible(PAGE_SIZE);
   }, [searchQuery, calorieFilter, proteinFilter, dishes]);
 
   const loadDishes = async () => {
@@ -97,128 +99,146 @@ const Discover = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center" role="status">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-muted border-t-primary" />
+      </div>
+    );
   }
 
+  const stats = (dish: any) => [
+    ["Carbs", `${Math.round(dish["Carbohydrates (g)"] || 0)} g`],
+    ["Fats", `${Math.round(dish["Fats (g)"] || 0)} g`],
+    ["Fibre", `${Math.round(dish["Fibre (g)"] || 0)} g`],
+    ["Sodium", `${Math.round(dish["Sodium (mg)"] || 0)} mg`],
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold gradient-text">Discover Dishes</h1>
-          <p className="text-muted-foreground mt-2">Find and track Indian dishes</p>
-        </div>
-
-        {/* Filters */}
-        <div className="grid gap-4 md:grid-cols-[1fr_200px_200px]">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search dishes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Select value={calorieFilter} onValueChange={setCalorieFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Calories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Calories</SelectItem>
-              <SelectItem value="low">Low (&lt;200)</SelectItem>
-              <SelectItem value="medium">Medium (200-400)</SelectItem>
-              <SelectItem value="high">High (&gt;400)</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={proteinFilter} onValueChange={setProteinFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Protein" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Protein</SelectItem>
-              <SelectItem value="low">Low (&lt;10g)</SelectItem>
-              <SelectItem value="medium">Medium (10-20g)</SelectItem>
-              <SelectItem value="high">High (&gt;20g)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Results */}
-        <div className="text-sm text-muted-foreground">
-          Found {filteredDishes.length} dishes
-        </div>
-
-        {/* Dishes Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredDishes.map((dish) => (
-            <Card key={dish.id} className="glass-card hover:shadow-lg hover:scale-[1.02] transition-all duration-300 border-border/50">
-              <CardHeader>
-                <CardTitle className="text-lg">{dish["Dish Name"]}</CardTitle>
-                <CardDescription>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="outline">{Math.round(dish["Calories (kcal)"] || 0)} kcal</Badge>
-                    <Badge variant="outline">{Math.round(dish["Protein (g)"] || 0)}g protein</Badge>
-                  </div>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <div className="text-muted-foreground">Carbs</div>
-                    <div className="font-medium">{Math.round(dish["Carbohydrates (g)"] || 0)}g</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Fats</div>
-                    <div className="font-medium">{Math.round(dish["Fats (g)"] || 0)}g</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Fiber</div>
-                    <div className="font-medium">{Math.round(dish["Fibre (g)"] || 0)}g</div>
-                  </div>
-                  <div>
-                    <div className="text-muted-foreground">Sodium</div>
-                    <div className="font-medium">{Math.round(dish["Sodium (mg)"] || 0)}mg</div>
-                  </div>
-                </div>
-
-                <div className="space-y-2 pt-2">
-                  <Button 
-                    className="w-full" 
-                    onClick={() => handleAddMeal(dish)}
-                  >
-                    Add to Meals
-                  </Button>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleFindSimilar(dish)}
-                    >
-                      <Sparkles className="mr-1 h-3 w-3" />
-                      Similar
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleHealthierAlternative(dish)}
-                    >
-                      <TrendingDown className="mr-1 h-3 w-3" />
-                      Healthier
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredDishes.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No dishes found. Try adjusting your filters.</p>
-          </div>
-        )}
+    <div className="page space-y-8">
+      {/* Header */}
+      <div>
+        <p className="eyebrow">Dish database</p>
+        <h1 className="page-title mt-3">Discover dishes</h1>
+        <p className="mt-3 max-w-xl text-muted-foreground">
+          Search Indian dishes, compare calories and protein, and add one to today.
+        </p>
       </div>
+
+      {/* Filters */}
+      <div className="grid gap-3 md:grid-cols-[1fr_200px_200px]">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search dishes, e.g. paneer"
+            aria-label="Search dishes"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-11"
+          />
+        </div>
+        <Select value={calorieFilter} onValueChange={setCalorieFilter}>
+          <SelectTrigger aria-label="Filter by calories">
+            <SelectValue placeholder="Calories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Any calories</SelectItem>
+            <SelectItem value="low">Under 200 kcal</SelectItem>
+            <SelectItem value="medium">200 to 400 kcal</SelectItem>
+            <SelectItem value="high">Over 400 kcal</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={proteinFilter} onValueChange={setProteinFilter}>
+          <SelectTrigger aria-label="Filter by protein">
+            <SelectValue placeholder="Protein" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Any protein</SelectItem>
+            <SelectItem value="low">Under 10 g</SelectItem>
+            <SelectItem value="medium">10 to 20 g</SelectItem>
+            <SelectItem value="high">Over 20 g</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <p className="text-sm text-muted-foreground" aria-live="polite">
+        {filteredDishes.length} {filteredDishes.length === 1 ? "dish" : "dishes"}
+      </p>
+
+      {/* Dishes grid */}
+      <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {filteredDishes.slice(0, visible).map((dish) => (
+          <li key={dish.id} className="paper paper-hover flex flex-col overflow-hidden">
+            <MealThumb name={dish["Dish Name"]} size="lg" />
+            <div className="flex flex-1 flex-col p-5">
+              <h2 className="font-display text-xl leading-snug">{dish["Dish Name"]}</h2>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold tabular-nums text-primary">
+                  {Math.round(dish["Calories (kcal)"] || 0)} kcal
+                </span>
+                <span className="rounded-full bg-macro-protein/15 px-3 py-1 text-xs font-semibold tabular-nums text-macro-protein">
+                  {Math.round(dish["Protein (g)"] || 0)} g protein
+                </span>
+              </div>
+
+              <dl className="mt-4 grid grid-cols-4 gap-2 border-t border-border/70 pt-4 text-center">
+                {stats(dish).map(([label, value]) => (
+                  <div key={label}>
+                    <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</dt>
+                    <dd className="mt-0.5 text-sm font-semibold tabular-nums">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              <div className="mt-5 flex-1" />
+              <Button
+                variant="outline"
+                className="w-full border-primary/40 text-primary hover:border-primary hover:bg-primary hover:text-primary-foreground"
+                onClick={() => handleAddMeal(dish)}
+              >
+                <Plus className="h-4 w-4" />
+                Add to today
+              </Button>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <Button variant="ghost" size="sm" onClick={() => handleFindSimilar(dish)}>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Similar
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => handleHealthierAlternative(dish)}>
+                  <TrendingDown className="h-3.5 w-3.5" />
+                  Lighter
+                </Button>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {filteredDishes.length > visible && (
+        <div className="text-center">
+          <Button variant="outline" size="lg" onClick={() => setVisible((v) => v + PAGE_SIZE)}>
+            Show more dishes
+          </Button>
+        </div>
+      )}
+
+      {filteredDishes.length === 0 && (
+        <div className="rounded-2xl border-2 border-dashed bg-card/60 px-6 py-14 text-center">
+          <p className="font-display text-2xl">No dishes match</p>
+          <p className="mt-2 text-sm text-muted-foreground">Try a different word or clear a filter.</p>
+          <Button
+            className="mt-5"
+            variant="outline"
+            onClick={() => {
+              setSearchQuery("");
+              setCalorieFilter("all");
+              setProteinFilter("all");
+            }}
+          >
+            Clear filters
+          </Button>
+        </div>
+      )}
 
       <AddMealDialog
         dish={selectedDish}

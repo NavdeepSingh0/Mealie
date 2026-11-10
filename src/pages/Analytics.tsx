@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { Trophy, Medal, Award, Frown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
@@ -201,167 +202,156 @@ const Analytics = () => {
     return "none";
   };
 
-  const getTierIcon = (tier: string) => {
-    switch (tier) {
-      case "gold": return <Trophy className="h-6 w-6 text-accent" />;
-      case "silver": return <Medal className="h-6 w-6 text-gray-400" />;
-      case "bronze": return <Award className="h-6 w-6 text-orange-600" />;
-      default: return <Frown className="h-6 w-6 text-muted-foreground" />;
-    }
-  };
-
-  const getTierBadgeClass = (tier: string) => {
-    switch (tier) {
-      case "gold": return "bg-accent/20 text-accent border-accent";
-      case "silver": return "bg-gray-100 text-gray-600 border-gray-300";
-      case "bronze": return "bg-orange-100 text-orange-700 border-orange-300";
-      default: return "bg-muted text-muted-foreground border-border";
-    }
+  const tierStyle: Record<string, { icon: JSX.Element; chip: string; bar: string; label: string }> = {
+    gold: {
+      icon: <Trophy className="h-5 w-5" />,
+      chip: "bg-secondary/25 text-[hsl(32_80%_26%)] dark:text-secondary",
+      bar: "bg-secondary",
+      label: "Gold",
+    },
+    silver: {
+      icon: <Medal className="h-5 w-5" />,
+      chip: "bg-muted text-foreground",
+      bar: "bg-muted-foreground/70",
+      label: "Silver",
+    },
+    bronze: {
+      icon: <Award className="h-5 w-5" />,
+      chip: "bg-primary/10 text-primary",
+      bar: "bg-primary",
+      label: "Bronze",
+    },
+    none: {
+      icon: <Frown className="h-5 w-5" />,
+      chip: "bg-muted text-muted-foreground",
+      bar: "bg-border",
+      label: "Keep going",
+    },
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center" role="status">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-muted border-t-primary" />
+      </div>
+    );
   }
 
+  const axis = { fontSize: 12, fill: "hsl(var(--muted-foreground))" };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold gradient-text">Analytics</h1>
-          <p className="text-muted-foreground mt-2">Track your achievements and progress</p>
-        </div>
-
-        {/* Achievements */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold">{viewMode === 'daily' ? "Today's" : "This Week's"} Achievements</h2>
-            <div className="flex items-center gap-2">
-              <Label htmlFor="view-mode">Daily</Label>
-              <Switch
-                id="view-mode"
-                checked={viewMode === 'weekly'}
-                onCheckedChange={(checked) => setViewMode(checked ? 'weekly' : 'daily')}
-              />
-              <Label htmlFor="view-mode">Weekly</Label>
-            </div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {achievements.map((achievement, index) => (
-              <Card key={index} className={`border-2 ${getTierBadgeClass(achievement.tier)}`}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{achievement.name}</CardTitle>
-                    {getTierIcon(achievement.tier)}
-                  </div>
-                  <CardDescription>{achievement.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold">{Math.round(achievement.percentage)}%</div>
-                  <div className="text-sm text-muted-foreground mt-1">
-                    Tier: {achievement.tier === "none" ? "Keep going!" : achievement.tier.charAt(0).toUpperCase() + achievement.tier.slice(1)}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Weekly Nutrition Trend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Weekly Nutrition Trend</CardTitle>
-            <CardDescription>Your daily nutrition intake over the past 7 days</CardDescription>
-          </CardHeader>
-          <CardContent className="p-2 md:p-6">
-            <div className="h-[300px] md:h-[400px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weeklyData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis 
-                    dataKey="name" 
-                    tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} 
-                    stroke="hsl(var(--border))"
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12, fill: "hsl(var(--foreground))" }} 
-                    stroke="hsl(var(--border))"
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: "hsl(var(--popover))", 
-                      border: "1px solid hsl(var(--border))",
-                      borderRadius: "var(--radius)",
-                      color: "hsl(var(--popover-foreground))"
-                    }}
-                  />
-                  <Legend wrapperStyle={{ fontSize: '12px', color: "hsl(var(--foreground))" }} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="calories" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={2}
-                    name="Calories"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="protein" 
-                    stroke="hsl(var(--secondary))" 
-                    strokeWidth={2}
-                    name="Protein (g)"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="carbs" 
-                    stroke="hsl(var(--tertiary))" 
-                    strokeWidth={2}
-                    name="Carbs (g)"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Tier Legend */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Achievement Tiers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 md:grid-cols-4">
-              <div className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-accent" />
-                <div>
-                  <div className="font-medium">Gold</div>
-                  <div className="text-sm text-muted-foreground">100%</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Medal className="h-5 w-5 text-gray-400" />
-                <div>
-                  <div className="font-medium">Silver</div>
-                  <div className="text-sm text-muted-foreground">75-99%</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-orange-600" />
-                <div>
-                  <div className="font-medium">Bronze</div>
-                  <div className="text-sm text-muted-foreground">50-74%</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Frown className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <div className="font-medium">Keep going!</div>
-                  <div className="text-sm text-muted-foreground">&lt;50%</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="page space-y-10">
+      {/* Header */}
+      <div>
+        <p className="eyebrow">Progress</p>
+        <h1 className="page-title mt-3">Trends</h1>
+        <p className="mt-3 max-w-xl text-muted-foreground">How your intake and habits are tracking against your goals.</p>
       </div>
+
+      {/* Achievements */}
+      <section aria-labelledby="ach-heading">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <h2 id="ach-heading" className="text-2xl">
+            {viewMode === "daily" ? "Today" : "This week"}
+          </h2>
+          <div className="flex items-center gap-3 rounded-full border bg-card px-4 py-2">
+            <Label htmlFor="view-mode" className="text-sm">Daily</Label>
+            <Switch
+              id="view-mode"
+              checked={viewMode === "weekly"}
+              onCheckedChange={(checked) => setViewMode(checked ? "weekly" : "daily")}
+            />
+            <Label htmlFor="view-mode" className="text-sm">Weekly</Label>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {achievements.map((achievement, index) => {
+            const t = tierStyle[achievement.tier] ?? tierStyle.none;
+            return (
+              <div key={index} className="paper flex flex-col p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm font-semibold">{achievement.name}</p>
+                  <span className={cn("flex h-9 w-9 items-center justify-center rounded-xl", t.chip)} aria-hidden="true">
+                    {t.icon}
+                  </span>
+                </div>
+                <p className="mt-4 font-display text-4xl font-semibold tabular-nums">
+                  {Math.round(achievement.percentage)}
+                  <span className="text-2xl text-muted-foreground">%</span>
+                </p>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+                  <div className={cn("h-full rounded-full", t.bar)} style={{ width: `${Math.min(achievement.percentage, 100)}%` }} />
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">{achievement.description}</p>
+                <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.label}</p>
+              </div>
+            );
+          })}
+          {achievements.length === 0 && (
+            <p className="col-span-full rounded-2xl border-2 border-dashed bg-card/60 px-6 py-10 text-center text-sm text-muted-foreground">
+              Log a few meals and your streaks will show up here.
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* Weekly Nutrition Trend */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Last 7 days</CardTitle>
+          <CardDescription>Daily calories, protein and carbs.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-2 pt-0 md:p-6 md:pt-0">
+          <div className="h-[300px] w-full md:h-[380px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={weeklyData} margin={{ top: 8, right: 12, left: -12, bottom: 4 }}>
+                <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                <XAxis dataKey="name" tick={axis} tickLine={false} axisLine={{ stroke: "hsl(var(--border))" }} />
+                <YAxis tick={axis} tickLine={false} axisLine={false} />
+                <Tooltip
+                  cursor={{ stroke: "hsl(var(--border))" }}
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--popover))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "12px",
+                    color: "hsl(var(--popover-foreground))",
+                    boxShadow: "var(--shadow-md)",
+                  }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: "13px", paddingTop: 12 }} />
+                <Line type="monotone" dataKey="calories" stroke="hsl(var(--macro-calories))" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} name="Calories" />
+                <Line type="monotone" dataKey="protein" stroke="hsl(var(--macro-protein))" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} name="Protein (g)" />
+                <Line type="monotone" dataKey="carbs" stroke="hsl(var(--macro-carbs))" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} name="Carbs (g)" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tier legend */}
+      <section aria-label="How tiers work" className="paper p-5 md:p-6">
+        <p className="eyebrow mb-4">How tiers work</p>
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["gold", "100%"],
+            ["silver", "75 to 99%"],
+            ["bronze", "50 to 74%"],
+            ["none", "Under 50%"],
+          ].map(([tier, range]) => {
+            const t = tierStyle[tier];
+            return (
+              <li key={tier} className="flex items-center gap-3">
+                <span className={cn("flex h-9 w-9 items-center justify-center rounded-xl", t.chip)} aria-hidden="true">{t.icon}</span>
+                <div>
+                  <p className="text-sm font-semibold">{t.label}</p>
+                  <p className="text-sm text-muted-foreground">{range}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
     </div>
   );
 };

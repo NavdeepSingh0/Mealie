@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Sparkles } from "lucide-react";
+import { ShoppingBasket, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 
 const GroceryList = () => {
@@ -180,115 +180,120 @@ const GroceryList = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="flex min-h-[70vh] items-center justify-center" role="status">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-muted border-t-primary" />
+      </div>
+    );
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-4xl font-bold gradient-text">Grocery List</h1>
-            <p className="text-muted-foreground mt-2">
-              Ingredients for today's meals and your weekly plan
+  const countItems = (groups: any) =>
+    (Object.values(groups) as any[][]).reduce(
+      (acc, items) => ({ total: acc.total + items.length, done: acc.done + items.filter((i) => i.checked).length }),
+      { total: 0, done: 0 }
+    );
+  const a = countItems(aiGroceryItems);
+  const b = countItems(groceryItems);
+  const total = a.total + b.total;
+  const done = a.done + b.done;
+  const isEmpty = Object.keys(aiGroceryItems).length === 0 && Object.keys(groceryItems).length === 0;
+
+  const renderGroups = (groups: any, isAI: boolean, suffix: string) =>
+    Object.entries(groups).map(([category, items]: [string, any]) => {
+      const checked = items.filter((i: any) => i.checked).length;
+      return (
+        <section key={`${isAI ? "ai" : "plan"}-${category}`} className="paper p-5 md:p-6">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h3 className="text-xl">{category}</h3>
+            <p className="text-sm text-muted-foreground tabular-nums">
+              {checked} of {items.length}
             </p>
           </div>
-          <Button onClick={() => navigate("/ai-chat?action=groceries")} size="sm" className="w-full md:w-auto">
-            <Sparkles className="mr-2 h-4 w-4" />
-            <span className="md:inline">Generate List</span>
-          </Button>
+          <ul className="divide-y divide-border/70">
+            {items.map((item: any, index: number) => {
+              const id = `${isAI ? "ai" : "plan"}-${category}-${index}`;
+              return (
+                <li key={index}>
+                  <label htmlFor={id} className="flex cursor-pointer items-center gap-4 py-3">
+                    <Checkbox
+                      id={id}
+                      checked={item.checked}
+                      onCheckedChange={() => toggleItem(category, index, isAI)}
+                      className="h-5 w-5 rounded-md"
+                    />
+                    <span className={cn("flex-1 font-medium", item.checked && "text-muted-foreground line-through")}>
+                      {item.name}
+                    </span>
+                    <span className="text-sm text-muted-foreground tabular-nums">
+                      {item.quantity}
+                      {suffix}
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      );
+    });
+
+  return (
+    <div className="page max-w-3xl space-y-8">
+      <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="eyebrow">Shopping</p>
+          <h1 className="page-title mt-3">Grocery list</h1>
+          <p className="mt-3 max-w-md text-muted-foreground">
+            Ingredients for today&rsquo;s meals and your weekly plan.
+          </p>
         </div>
-
-        {Object.keys(aiGroceryItems).length === 0 && Object.keys(groceryItems).length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">
-                No grocery list yet. Create a meal plan or use AI to generate today's grocery list!
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            {Object.keys(aiGroceryItems).length > 0 && (
-              <>
-                <div>
-                  <h2 className="text-2xl font-bold mb-4">Today's AI-Generated List</h2>
-                </div>
-                {Object.entries(aiGroceryItems).map(([category, items]: [string, any]) => (
-                  <Card key={`ai-${category}`}>
-                    <CardHeader>
-                      <CardTitle>{category}</CardTitle>
-                      <CardDescription>
-                        {items.filter((i: any) => i.checked).length} of {items.length} items
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {items.map((item: any, index: number) => (
-                          <div 
-                            key={index} 
-                            className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
-                          >
-                            <Checkbox
-                              checked={item.checked}
-                              onCheckedChange={() => toggleItem(category, index, true)}
-                            />
-                            <div className={`flex-1 ${item.checked ? 'line-through text-muted-foreground' : ''}`}>
-                              <div className="font-medium">{item.name}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {item.quantity}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </>
-            )}
-
-            {Object.keys(groceryItems).length > 0 && (
-              <>
-                <div>
-                  <h2 className="text-2xl font-bold mb-4">Weekly Meal Plan Ingredients</h2>
-                </div>
-                {Object.entries(groceryItems).map(([category, items]: [string, any]) => (
-                  <Card key={`plan-${category}`}>
-                    <CardHeader>
-                      <CardTitle>{category}</CardTitle>
-                      <CardDescription>
-                        {items.filter((i: any) => i.checked).length} of {items.length} items
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {items.map((item: any, index: number) => (
-                          <div 
-                            key={index} 
-                            className="flex items-center gap-3 p-3 rounded-lg border hover:bg-accent/50 transition-colors"
-                          >
-                            <Checkbox
-                              checked={item.checked}
-                              onCheckedChange={() => toggleItem(category, index, false)}
-                            />
-                            <div className={`flex-1 ${item.checked ? 'line-through text-muted-foreground' : ''}`}>
-                              <div className="font-medium">{item.name}</div>
-                              <div className="text-sm text-muted-foreground">
-                                {item.quantity}g
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </>
-            )}
-          </div>
-        )}
+        <Button onClick={() => navigate("/ai-chat?action=groceries")} variant="hero">
+          <Sparkles className="h-4 w-4" />
+          Generate a list
+        </Button>
       </div>
+
+      {isEmpty ? (
+        <div className="rounded-2xl border-2 border-dashed bg-card/60 px-6 py-16 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/25 text-secondary-foreground">
+            <ShoppingBasket className="h-7 w-7" />
+          </div>
+          <p className="font-display text-2xl">Your list is empty</p>
+          <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+            Build a meal plan, or ask the assistant to generate today&rsquo;s groceries.
+          </p>
+          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button variant="outline" onClick={() => navigate("/meal-plan")}>Plan the week</Button>
+            <Button variant="hero" onClick={() => navigate("/ai-chat?action=groceries")}>Generate a list</Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="paper p-5 md:p-6">
+            <div className="mb-3 flex items-baseline justify-between">
+              <p className="font-display text-xl font-semibold">{total - done === 0 ? "All done" : `${total - done} left to buy`}</p>
+              <p className="text-sm text-muted-foreground tabular-nums">{done} of {total} ticked</p>
+            </div>
+            <div className="h-2.5 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Items ticked" aria-valuenow={done} aria-valuemin={0} aria-valuemax={total}>
+              <div className="h-full rounded-full bg-tertiary transition-[width] duration-500" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
+            </div>
+          </div>
+
+          {Object.keys(aiGroceryItems).length > 0 && (
+            <div className="space-y-4">
+              <h2 className="text-2xl">Today&rsquo;s list</h2>
+              {renderGroups(aiGroceryItems, true, "")}
+            </div>
+          )}
+
+          {Object.keys(groceryItems).length > 0 && (
+            <div className="space-y-4">
+              <h2 className="text-2xl">For the weekly plan</h2>
+              {renderGroups(groceryItems, false, " g")}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
